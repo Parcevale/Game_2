@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="./style/style.css">
+	<script src="./libs/jquery-3.6.0.min.js"></script>
+	<script src="./libs/vue.min.js"></script>
+</head>
+
+<body class="sapUiBody" id="content">
+	<canvas id="canvas"></canvas>
+	<div id="appInterface">
+		<div id="equipment" class="equipment">
+			<div id="character_Page" class="character-page">
+				<div class="put-on-inventory">
+					<div id="helmet" class="item-of-clothing">голова</div>
+					<div id="armor" class="item-of-clothing">броня</div>
+					<div id="mainWeapon" class="item-of-clothing">оружие</div>
+					<div id="spareWeapon" class="item-of-clothing">доп.оружие</div>
+					<div id="gloves" class="item-of-clothing">перчатки</div>
+					<div id="pants" class="item-of-clothing">штаны</div>
+					<div id="boots" class="item-of-clothing">обувь</div>
+					<div id="necklace" class="item-of-clothing">оЖИРелье</div>
+					<div id="ringOne" class="item-of-clothing">кольцо(1)</div>
+					<div id="ringTwo" class="item-of-clothing">кольцо(2)</div>
+				</div>
+				<div class="character-image">
+					<div class="info-stats">
+						<h1>Уровень: {{ dataHero.mainHero.level }}</h1>
+						<h1>Здоровье: {{ dataHero.mainHero.hp }}</h1>
+						<h1>Опыт: {{ dataHero.mainHero.exp }}</h1>
+					</div>
+				</div>
+			</div>
+			<div id="stats_Page" class="stats-page">
+				<div class="stats-block">
+					<div class="change-stats">
+						<div v-for="item in dataHero.mainHero.props.stats" :key="item.message" class="change-stats-item">
+							<h1>{{ item.name }} {{ item.number }}</h1>
+							<button v-on:click="onAddStat" data-bind="{{ item.name }}">+</button>
+						</div>
+					</div>
+				</div>
+				<div class="active-stats">
+					<h1>Свободные очки: {{ dataHero.mainHero.props.freeStat }}</h1>
+				</div>
+			</div>
+		</div>
+		<div id="inventory" class="inventory">
+			<div id="inventory_Page" class="inventory-page">
+				<div v-for="item in dataHero.mainHero.items" :key="item.message" class="inventory-item">
+                    <img src="{{ item.anim[0].src }}" alt="apple" width="30">
+					<h1>{{ item.name }} {{ item.frame }}</h1>
+					<button v-on:click="onAddStat" data-bind="{{ item.name }}">...</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<button onclick="onStartGame()">Start</button>
+	<button onclick="getInfo()">Get info</button>
+	<!-- <script type="text/javascript" src="data/data.js"></script> -->
+	<!-- <script type="text/javascript" src="libs/require.js"></script> -->
+	<script type="text/javascript" src="js/interface.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
+
+</body>
+	</html>

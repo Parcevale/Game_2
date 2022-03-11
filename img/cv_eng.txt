@@ -1,0 +1,35 @@
+I've got 4 large completed projects. Two of them as a team lead.
+I also have been involved in three smaller projects.
+2 gazprom, 2 years
+1 sberbank, 1 year
+1 nlmk, 6 months
+1 I cannot divulge, 6 months
+
+At the gazprom project we used HANA XS backend, so we used xsjs, xsOData and hana calculation views. I understand hana views and can build simple ones. I wrote xsjs services with sql requests. So I'm familiar with sql and i can write simple requests.
+We used Hana studio, and it was our version control system.
+The application was for the maintaining the state of the gas transmission network, state management and maintenance scheduling.
+
+The second gazprom project was Master Data Management application.
+I can mention complicated data structure with dynamic tables and a lot of data parsing. It also used xsjs and xsodata backend.
+
+
+Further I lead a project at the Sberbank. It was a bunch of 5 fiori lunchpad applications with common abap odata backend. Among other things I set up lounchpad tiles, groups, roles and everything connected with it. There were no dynamic tiles.
+It was a split app with main Master part, and every detail part was a separate app. We used git there.
+I created a few custom controls for that app. Buttons and visualisation control, like wizard steps but more complicated and with dynamic colors.
+Buttons had different styles. I extended renderer instead of custom css there.
+There were some CDS services.
+I can mention little odata experience for abap developers, so I had to resolve some backend(server?) issues,
+like Activation ICF Services and assignment system alias. I became familiar with metadata, Gateway Service Builder and it's client, se38, se80 and cache cleanup.
+
+
+
+Next project I lead the development of a management reporting system for the ETS division for NLMK.
+It were four similar apps with Tableau integration.
+There was an interesting requirement to support copy paste from excel to table. So you can copy several columns and past it into the table.
+
+
+Next project I completed alone. It was a new page for an existing app. It was decided to make it separated app from main service and it provided a few problems.
+The data and the state (we block an item in the main app) I have to store among two apps. Data storing is ok, but it's not that easy to sustain connection cos of different sessions.
+App is a page with a lot of consolidated data from different services and rights for every property. It's a very dynamic page, cos I had to place different types and numbers of controls depending on data I receive, and with it's own items and backend validation.
+
+For now I'm consulting other developers in my company.

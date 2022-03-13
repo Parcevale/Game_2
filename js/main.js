@@ -22,8 +22,6 @@ $.when(
 	function loadBackground() {
 		loadResources(a, null, startGame)
 	}
-	
-	//([{ src: './img/backgraund.jpg' }])
 });
 
 var cnv = document.getElementById('canvas');
@@ -86,20 +84,8 @@ function drawUI() {
 
 	//inventary;
 	if (DATA.mainHero.inventary) {
-		/*ctx.strokeStyle = "blue";
-		ctx.strokeRect(530, 30, 300, 200);
-		ctx.fillStyle = 'white';
-		ctx.fillRect(531, 31, 298, 198);
-		DATA.mainHero.items.forEach(function(oItem, idx) {
-			ctx.fillStyle = 'black';
-			ctx.fillText(oItem.name,  540, 50 + idx*20);
-		})*/
 	}
 	if (DATA.mainHero.equipment) {
-		/*ctx.strokeStyle = "blue";
-		ctx.strokeRect(930, 30, 300, 200);
-		ctx.fillStyle = 'white';
-		ctx.fillRect(930, 31, 298, 198);*/
 	}
 }
 function isDraw(obj) {
@@ -156,20 +142,12 @@ var mainLoop = function () {
 		ctx.fillStyle = 'white';
 		ctx.font = "40px serif";
 		ctx.fillText(obj.text,  obj.x  - getCam().x, obj.y  - getCam().y);
-		// if (obj.props.anim && !obj.destroy) {
-			// drawAnimation(obj);
-		// }
 	})
-	// aObjects.forEach(function(obj,n,array) {
-		// if (obj.destroy) clearArray(array, obj);//походу героя удаляет при убийстве моба
-	// });
-	// aObjects.forEach(calcObjects);
 	aObjects.forEach(function (obj) {
 		if (!obj.destroy && isDraw(obj)) {
 			calcObjects(obj);
 			drawAnimation(obj);
 		}
-		// drawAnimation(obj)
 	})
 	drawUI();
 	lastLoop = thisLoop;
@@ -177,7 +155,6 @@ var mainLoop = function () {
 function calcText(oText){
 	oText.x += 3;
 	oText.y -= 3;
-	// console.log('text',oText);
 }
 function clearArray(array, object){
 	if (~array.indexOf(object)) {
@@ -218,7 +195,7 @@ function drawAnimation(obj) {
 		ctx.translate(obj.x -getCam().x,obj.y-getCam().y);
 		ctx.rotate(Math.atan(obj.k));
 		// ctx.rotate(20 * Math.PI/180);
-		console.log('draw',Math.atan(obj.k)*180/Math.PI);
+		// console.log('draw',Math.atan(obj.k)*180/Math.PI);
 		ctx.drawImage(
 			oAnim.img,				//img
 			currentFrame,		//позиция начала по x
@@ -257,12 +234,11 @@ function calcObjects(Obj){
 	if (Obj.destroy) return;
 	var actions = Obj.actions;
 	Obj.cooldown && --Obj.cooldown;
-	// console.log(Obj.cooldown);
 	if (actions.inventary) {
 		actions.inventary = false;
 		Obj.inventary = !Obj.inventary;
 	}
-		if (actions.equipment) {
+	if (actions.equipment) {
 		actions.equipment = false;
 		Obj.equipment = !Obj.equipment;
 	}
@@ -277,49 +253,79 @@ function calcObjects(Obj){
 		!Obj.cooldown) {
 		addAnim(Obj, "idle");
 	}
+
 	if (Obj.movefn) {
 		Obj.movefn(Obj);
 	}
-	if (actions.moveRight && !Obj.cooldown && !Obj.movefn) {
-		// console.log('check move right');
-		if (checkMoveRight(Obj))
-		Obj.x = Obj.x + checkMoveRight(Obj);
+	for (var action in actions) {
+		if (actions[action]) {
+			runAction(action, Obj);
+		}
 	}
 
-	if (actions.moveLeft && !Obj.cooldown && !Obj.movefn) {
-		// console.log('check move left');
-		if (checkMoveLeft(Obj))
-		Obj.x = Obj.x - checkMoveLeft(Obj);
-
-	}
-
-	if (actions.moveDown && !Obj.cooldown && !Obj.movefn) {
-		if (checkMoveDown(Obj))
-			Obj.y = Obj.y + checkMoveDown(Obj);
-
-	}
-
-	if (actions.moveUp && !Obj.cooldown && !Obj.movefn) {
-		if (checkMoveUp(Obj))
-			Obj.y = Obj.y - checkMoveUp(Obj);
-
-	}
-
-	if (actions.strike && !Obj.cooldown) {
-
-		strike(Obj)
-	}
-	if (actions.mobStrike && !Obj.cooldown) {
-		mobStrike(Obj)
-	}
-	if (actions.attack) {
-		// console.log('check attack');
-		checkAttack(Obj);
-	}
 	if (actions.useItem) {
-		// console.log('check attack');
 		useItem(Obj);
 	}
+}
+
+function runAction(sName,obj){
+	var aActions = [
+		{name:"moveRight", cd:true, fn:function (obj) { obj.x = obj.x + checkMoveRight(obj)}},
+		{name:"moveLeft", cd:true,  fn:function (obj) { obj.x = obj.x - checkMoveLeft(obj)}},
+		{name:"moveDown", cd:true,  fn:function (obj) { obj.y = obj.y + checkMoveDown(obj)}},
+		{name:"moveUp",  cd:true,   fn:function (obj) { obj.y = obj.y - checkMoveUp(obj);}},
+		{name:"strike", cd:true,    fn:function (obj) { strike(obj)}},
+		{name:"mobStrike", cd:true, fn:function (obj) { mobStrike(Obj)}},
+		{name:"attack", cd:false,   fn:function (obj) { checkAttack(obj)}},
+		{name:"melee", cd:true,   fn:function (obj) { melee(obj)}}
+
+	]
+	var action = aActions.filter(x => x.name == sName)[0];
+	if (action) {
+		if ((action.cd && !obj.cooldown) || !action.cd) {
+			action.fn(obj);
+		}
+	}
+}
+
+function melee(Obj) {
+	Obj.cooldown = objectsDb.strike.time + Obj.attackSpeed;
+	var aObj = aObjects;//DATA.world.enemy;
+	var heroDirection = Obj.x < (DATA.mouse.x+1)? "R": "L";
+	Obj.direction = heroDirection;
+	var direction = Obj.direction == "R" ? 1 : -1;
+	addAnim(Obj, "strike");
+	console.log(Obj, "strike");
+		var y = Obj.y// + 23 + 40;
+		var x = Obj.x// + 40;
+
+		var k = (DATA.mouse.y-y)/(DATA.mouse.x-x);
+		var speed = 50 * direction;
+		var stepX = speed/Math.sqrt(1+k*k);
+
+		console.log("stepX",stepX,stepX + Obj.props.w/2*direction, x);
+		
+
+
+	var strikeObj = {
+		damage: Obj.props.damage,
+		x: x + stepX + Obj.props.w/2*direction,
+		y: y + (k*stepX) - Obj.props.h/2,
+		//k: k,//(DATA.mouse.y-Obj.y)/(DATA.mouse.x-Obj.x),
+		state: "idle",// + Obj.direction,
+		props: objectsDb.strike,
+		// mob: true,
+		source: Obj,
+		actions: {attack: true}
+	}
+	aObj.push(strikeObj);
+
+	function clearStrike() {
+		aObj.splice(aObj.indexOf(strikeObj), 1);
+
+	}
+	setTimeout(clearStrike, objectsDb.strike.time * 5);
+
 }
 
 function strike(Obj) {
@@ -342,9 +348,6 @@ function strike(Obj) {
 
 		obj.x += stepX;
 		obj.y += (k*stepX);
-
-			console.log('k', k, 'x', obj.x,'y', obj.y, "stepX",stepX,  );
-		// // }
 	}
 	var strikeObj = {
 		damage: Obj.props.damage,
@@ -362,20 +365,7 @@ function strike(Obj) {
 		actions: {attack: true},
 		movefn : strikeMove
 	}
-	// if (Obj.direction == "R") {
-	// 	strikeObj.actions.moveRight = true;
-	// } else strikeObj.actions.moveLeft = true;
-	// strikeObj.actions = Obj.direction == "R" ? 1 : -1;
 	for(var k in strikeObj.props) strikeObj[k]=strikeObj.props[k];
-	// var strikeObj = {
-	// 	damage: Obj.props.damage,
-	// 	x: Obj.x + 100 * direction,
-	// 	y: Obj.y + 70,
-	// 	state: "idle" + Obj.direction,
-	// 	props: objectsDb.strike,
-	// 	actions: {attack: true}
-	// }
-	// aObj.push(strikeObj);
 	function performStrike() {
 		aObj.push(strikeObj);
 }	
@@ -531,12 +521,11 @@ document.addEventListener('mousemove', (event) => {
 
 document.addEventListener('contextmenu', function (event) {
 	let hero = DATA.mainHero;
-	console.log("event", event);
-	hero.actions.strike = true;
+	var action = DATA.actions.filter(x=> x.key === "RMB")[0];
+	hero.actions[action.name] = true;
 
 	function clearRMB () {
-		DATA.mainHero.actions.strike = false;
-		console.log('clear');
+		DATA.mainHero.actions[action.name] = false;
 	}
 	event.preventDefault();
 	setTimeout(function() {
@@ -716,7 +705,7 @@ function checkAttack(Obj) {
 		if (bHit) {
 			hit(Obj,oEnemy);
 			if (Obj.projectile) Obj.destroy = true;
-			Obj.destroy = true;
+			// Obj.destroy = true;
 		}
 
 	})

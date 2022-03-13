@@ -186,12 +186,13 @@ var objectsDb = {
 			]
 	},
 	strike: {
-		w: 140,
-		h: 140,
+		w: 80,
+		h: 80,
 		grav: 0,
 		anim: 	
 			[
 				{name: "idleR", src: "./img/strike_1R.png", frames: 18, speed: 2},
+				{name: "idle", src: "./img/strike_1R.png", frames: 18, speed: 2},
 				{name: "idleL", src: "./img/strike_1L.png", frames: 18, speed: 2}
 			],
 		time: 30

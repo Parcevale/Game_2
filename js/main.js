@@ -18,7 +18,7 @@ $.when(
 ).done(function () {
 	console.log("sources.lenght");
 	loadResources(createSources(objectsDb), DATA, loadBackground);
-	
+
 	function loadBackground() {
 		loadResources(a, null, startGame)
 	}
@@ -34,7 +34,7 @@ var aObjects = [];
 function startGame() {
 	var hero = DATA.mainHero;
 	for(var k in hero.props) hero[k]=hero.props[k];
-	
+
 	aObjects.push(hero);
 	//DATA.currentLocation = "home_loc";
 	// DATA.currentLocation = "level_1";
@@ -54,7 +54,7 @@ var clear = function() {
 var draw = function(x,y,w,h,color) {
 	ctx.fillStyle = color;
 	ctx.fillRect(x,y,w,h,color);
-} 
+}
 
 function getCam() {
 	var x = DATA.mainHero.x - DATA.windowWidth/2 > 1 ? DATA.mainHero.x - DATA.windowWidth/2 : 1;
@@ -68,7 +68,7 @@ function drawUI() {
 	ctx.font = "15px serif";
 	// ctx.fillText(DATA.mainHero.points,  40, 30);
 	// ctx.strokeText(DATA.mainHero.points,  40, 30);
-	
+
 	//draw stats
 	ctx.strokeStyle = "blue";
 	ctx.strokeRect(30, 30, 300, 200);
@@ -100,7 +100,7 @@ var lastLoop = new Date();
 var mainLoop = function () {
     var thisLoop = new Date();
     DATA.fps = 1000 / (thisLoop - lastLoop);
-    
+
 	// var currentLocation = ;
 	clear();
 	ctx.drawImage(a[0].img,-getCam().x/15,0,DATA.windowWidth*2, DATA.windowHeight);
@@ -166,7 +166,7 @@ function clearArray(array, object){
 function drawObject(obj) {
 	var oAnim = obj.props.anim.filter(x => x.name === obj.state)[0];
 	// console.log(1231111);
-		ctx.drawImage(	
+		ctx.drawImage(
 			oAnim.img,				//img
 			obj.posY,		//позиция начала по x
 			obj.posX,		//позиция начала по y
@@ -223,7 +223,7 @@ function drawAnimation(obj) {
 	// 180 / Math.PI * Math.atan2(a, b)
 
 	ctx.restore();
-	
+
 
 }
 
@@ -291,26 +291,22 @@ function runAction(sName,obj){
 function melee(Obj) {
 	Obj.cooldown = objectsDb.strike.time + Obj.attackSpeed;
 	var aObj = aObjects;//DATA.world.enemy;
-	var heroDirection = Obj.x < (DATA.mouse.x+1)? "R": "L";
-	Obj.direction = heroDirection;
-	var direction = Obj.direction == "R" ? 1 : -1;
 	addAnim(Obj, "strike");
-	console.log(Obj, "strike");
-		var y = Obj.y// + 23 + 40;
-		var x = Obj.x// + 40;
 
-		var k = (DATA.mouse.y-y)/(DATA.mouse.x-x);
-		var speed = 50 * direction;
-		var stepX = speed/Math.sqrt(1+k*k);
+	var heroX = Obj.x + Obj.props.w / 2;
+	var heroY = Obj.y + Obj.props.h / 2;
+	var mouseX = DATA.mouse.x;
+	var mouseY = DATA.mouse.y;
+	Obj.direction = heroX < (mouseX + 1) ? "R" : "L";
 
-		console.log("stepX",stepX,stepX + Obj.props.w/2*direction, x);
-		
-
+	var mouseDirection = getDirection(heroX, heroY, mouseX, mouseY);
+	var strikeX = moveDirectionX(mouseDirection, 50);
+	var strikeY = moveDirectionY(mouseDirection, 50);
 
 	var strikeObj = {
 		damage: Obj.props.damage,
-		x: x + stepX + Obj.props.w/2*direction,
-		y: y + (k*stepX) - Obj.props.h/2,
+		x: heroX + strikeX - 40,
+		y: heroY + strikeY - 40,
 		//k: k,//(DATA.mouse.y-Obj.y)/(DATA.mouse.x-Obj.x),
 		state: "idle",// + Obj.direction,
 		props: objectsDb.strike,
@@ -327,6 +323,52 @@ function melee(Obj) {
 	setTimeout(clearStrike, objectsDb.strike.time * 5);
 
 }
+
+// возвращает угол вектора. Право - 0 градусов
+function getDirection(x1, y1, x2, y2) {
+	var angle = Math.atan((y2 - y1) / (x2 - x1)) * (180 / Math.PI);
+	var dirSection;
+	if (x2 >= x1 && y2 >= y1) dirSection = "BR"; // право низ
+	if (x2 < x1 && y2 >= y1) dirSection = "BL";  // лево низ
+	if (x2 < x1 && y2 < y1) dirSection = "TL";   // лево верх
+	if (x2 >= x1 && y2 < y1) dirSection = "TR";  // право верх
+
+	switch (dirSection) {
+		case "BR":
+			// ничего не меняем
+		break;
+		case "BL":
+			angle = 180 + angle;
+		break;
+		case "TL":
+			angle = 180 + angle;
+		break;
+		case "TR":
+			angle = 360 + angle;
+		break;
+	}
+
+	return angle; // в градусах
+}
+
+function moveDirectionX (dir, dist) {
+	return Math.cos(dir / (180 / Math.PI)) * dist;
+}
+
+function moveDirectionY (dir, dist) {
+	return Math.sin(dir / (180 / Math.PI)) * dist;
+}
+
+function test () {
+	try {
+		window.mouseDir = getDirection(500, 500, DATA.mouse.x, DATA.mouse.y);
+		window.moveDirX = moveDirectionX(window.mouseDir, 100);
+		window.moveDirY = moveDirectionY(window.mouseDir, 100);
+	} catch { console.error("test error"); }
+	setTimeout(test, 0);
+};
+
+test();
 
 function strike(Obj) {
 	Obj.cooldown = objectsDb.strike.time + Obj.attackSpeed;
@@ -368,7 +410,7 @@ function strike(Obj) {
 	for(var k in strikeObj.props) strikeObj[k]=strikeObj.props[k];
 	function performStrike() {
 		aObj.push(strikeObj);
-}	
+}
 
 	function clearStrike() {
 		aObj.splice(aObj.indexOf(strikeObj), 1);
@@ -412,7 +454,7 @@ function checkJump(Obj){
 }
 // fumoveDown
 
-function checkMoveRight(Obj){ 
+function checkMoveRight(Obj){
 	var aObs = DATA.world.obstacles;
 	var nMove = Obj.props.speed;
 	// Obj.scale = 1;
@@ -430,7 +472,7 @@ function checkMoveRight(Obj){
 	return nMove;
 }
 
-function checkMoveLeft(Obj){ 
+function checkMoveLeft(Obj){
 	var aObs = DATA.world.obstacles;
 	var nMove = Obj.props.speed;
 	// Obj.scale = -1;
@@ -484,7 +526,7 @@ function checkMoveDown(Obj) {
 }
 
 
-// function checkMoveDown(Obj){ 
+// function checkMoveDown(Obj){
 // 	var aObs = DATA.world.obstacles;
 // 	var nMove = DATA.gravity;
 // 	addAnim(Obj, "down");
@@ -502,7 +544,7 @@ function checkMoveDown(Obj) {
 // }
 
 function checkCollision(a1,a2,b1, obj,obs, nMove) {
-	temp = Math.abs((a1 + a2) - b1); 
+	temp = Math.abs((a1 + a2) - b1);
 	nMove = obs.block ? Math.min(nMove,temp) : nMove;
 	if (temp < 20 && obs.action && !obs.destroy) {
 		obsActions(obs.action)(obj,obs);
@@ -576,7 +618,7 @@ function obsActions(sName) {
 }
 
 // mainLoop();
-//может события в отдельный файлик? 
+//может события в отдельный файлик?
 function pickCoin(hero, obj) {
 	// console.log('pickCoin');
 	if (!hero.playable) return;
@@ -626,7 +668,7 @@ function tp_level_2(hero){
 	setLocation("level_2");
 	hero.x = 140;
 	hero.y = 1160;
-	
+
 }
 function tp_level_3(hero){
 	setLocation("level_3");
@@ -698,7 +740,7 @@ function checkAttack(Obj) {
 		bHit = aDots.some(function (oDot) {// тут что то не так, проверяет остальные попадания даже если попадание было
 			if (checkDot(oDot.x, oDot.y, oEnemy.x, oEnemy.y, oEnemy.x + oEnemy.props.w, oEnemy.y + oEnemy.props.h)){
 				// oEnemy.destroy = true;
-				// console.log('hit!', oEnemy); 
+				// console.log('hit!', oEnemy);
 				return true;
 			} return false;
 		})
@@ -712,8 +754,8 @@ function checkAttack(Obj) {
 
 }
 function checkDot(x, y, ax, ay,bx,cy){
-	if (ax < x && x < bx && ay < y && y < cy ) return true; 
-	else return false; 
+	if (ax < x && x < bx && ay < y && y < cy ) return true;
+	else return false;
 }
 function getDots(obj){
 	var aDots = [
@@ -745,7 +787,7 @@ function hit(source,target) {
 	setTimeout(restoreAnim, 200);
 
 
-	
+
 	//show dmg.
 
 
@@ -765,13 +807,13 @@ function calcDmg(source, target) {
 // stats: [
 // 			{ number: 1, name: "Strength" },// урон в ближнем бою, обьем выносливости
 // 			{ number: 1, name: "Reaction" },//Снижение урона, скорость атаки
-// 			{ number: 1, name: "Concentration" },//Увеличение урона, скорость каста, увеличение урона в дальнем бою. 
+// 			{ number: 1, name: "Concentration" },//Увеличение урона, скорость каста, увеличение урона в дальнем бою.
 // 			{ number: 1, name: "Sensibility" },//Количество маны, скорость регена, защита от магии
-// 			{ number: 1, name: "Constitution" },//увеличение хп,реген хп и выносливости. 
+// 			{ number: 1, name: "Constitution" },//увеличение хп,реген хп и выносливости.
 // 			{ number: 1, name: "Will" },//увеличение магического урона, снижение стоимости скилов по воле.
 // 		],
 	var dmgK = (target.level + target.stats.filter(x => x.name === "Concentration")[0].number) - (source.level + source.stats.filter(x => x.name === "Reaction")[0].number);
-	fK = K - dmgK;//fK по идеи должен быть от -50 до 50. добавить проверку. 
+	fK = K - dmgK;//fK по идеи должен быть от -50 до 50. добавить проверку.
 	console.log("fK", fK, 'урон от модификатора', source.damage*(fK/100), 'модификатор брони', source.damage*(target.armor/100)*(fK/100));
 	// (source.damage*(target.armor/100));
 	var finalDmg = Math.floor(damage + damage*(fK/100)- damage*(target.armor/100)*(fK/100));
@@ -832,7 +874,7 @@ function showHP(target, dmg){
 function createMap(sName) {
 	var oLoc = DATA[sName];
 	var aTiles = oLoc.mainTiles;
-	
+
 	var aMap = Array.from(Array(oLoc.h), function(){
 		return Array.from(Array(oLoc.w), function() {
 			return aTiles[Math.floor(Math.random() * aTiles.length)];
@@ -851,7 +893,7 @@ function addFragments(aMap, aFragments) {
 			aRow.forEach(function(tile, nTile){
 				aMap[nRow + oFragment.x][nTile + oFragment.y] = tile;
 			})
-		}) 
+		})
 	})
 }
 function addEnemies(aMap, sName){
@@ -881,8 +923,8 @@ function setLocation(sName){
 	if (!DATA[sName]) return;
 	console.log('check');
 	createMap(sName);
-	var enemy = DATA[sName].enemy; 
-	var obs = DATA[sName].obstacles; 
+	var enemy = DATA[sName].enemy;
+	var obs = DATA[sName].obstacles;
 	var aMap = DATA[sName].map || createMap(sName);
 	// if (!aMap) aM
 	console.log(aMap);
@@ -893,7 +935,7 @@ function setLocation(sName){
 	if (aMap){
 		aMap.forEach(function(row, rowIndx) {
 			row.forEach(function(cell, ind){
-				if (!cell) return; 
+				if (!cell) return;
 				if (!Array.isArray(cell)) cell = [cell];
 				cell.forEach(function(item){
 					var ix = objectsDb[item].x || 0;
@@ -919,7 +961,7 @@ function setLocation(sName){
 		obstacles: obs,
 		enemy : enemy,
 		text: []
-	}; 
+	};
 	DATA.world = oLocation;
 }
 function addExp(exp) {
@@ -953,7 +995,7 @@ function dropLoot(source) {
 			return item.chance > Math.floor(Math.random() * 100);
 		})
 		aLoot.forEach(function(oDropItem, idx) {
-		
+
 		var oDropItem = {
 				x: source.x + source.w/2 + idx*5,
 				y: source.y + source.h-30,
@@ -962,7 +1004,7 @@ function dropLoot(source) {
 		for(var k in oDropItem.props) oDropItem[k]=oDropItem.props[k];
 		DATA.world.obstacles.push(oDropItem);
 	})
-	
+
 }
 function calcAi(Obj) {
 	return;
@@ -973,19 +1015,19 @@ function calcAi(Obj) {
 		// console.log(Obj.cooldown);
 		// if (action) {
 		// 	Obj.aggresive = true;
-		// 	console.log('check enemy',action); 
+		// 	console.log('check enemy',action);
 		// 	Obj.actions = {};
 		// 	Obj.actions[action] = true;
 		// 	return;
-		// } 
+		// }
 		// if (Obj.aggresive) {
 		// 	Obj.actions = {};
 		// 	Obj.aggresive = false;
-		// }	
+		// }
 
 	// }
-	
-	var direction = Math.floor(Math.random() * 5); 
+
+	var direction = Math.floor(Math.random() * 5);
 	var time = Math.floor(Math.random() * 5);
 
 	var actions =  ["moveRight", "idle", "moveLeft", "moveDown", "moveUp"];
